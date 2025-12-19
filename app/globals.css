@@ -339,6 +339,14 @@
   @apply min-h-full! dark:bg-dark-400! bg-light-800! text-light-500! dark:data-[state=active]:bg-dark-300! data-[state=active]:bg-primary-100! data-[state=active]:text-primary-500!;
 }
 
+@utility bg-auth-dark {
+  @apply bg-[var(--background-image-auth-dark)] bg-no-repeat bg-cover bg-center;
+}
+
+@utility bg-auth-light {
+  @apply bg-[var(--background-image-auth-light)] bg-no-repeat bg-cover bg-center;
+}
+
 @layer base {
   :root {
     --radius: 0.5rem;
