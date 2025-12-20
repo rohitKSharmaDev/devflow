@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { formUrlQuery, removeKeysFromUrlQuery } from "../../lib/url";
 
@@ -30,7 +30,15 @@ const LocalSearch = ({
 
   const [searchQuery, setSearchQuery] = useState(query);
 
+  const previousSearchRef = useRef(searchQuery);
+
   useEffect(() => {
+    if(previousSearchRef.current !== query) {
+      return;
+    }
+
+    previousSearchRef.current = searchQuery;
+
     const delayDebounceFn = setTimeout(() => {
       if (searchQuery) {
         const newUrl = formUrlQuery({
