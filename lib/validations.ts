@@ -73,9 +73,9 @@ export const UserSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
   email: z.string().email("Invalid email address"),
   bio: z.string().optional(),
-  image: z.string().url("Invalid image URL").optional(),
+  image: z.string().url("Please provide a valid URL").optional(),
   location: z.string().optional(),
-  portfolio: z.string().url("Invalid portfolio URL").optional(),
+  portfolio: z.string().url("Please provide a valid URL").optional(),
   reputation: z.number().optional(),
 });
 

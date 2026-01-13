@@ -17,6 +17,7 @@ export class RequestError extends Error {
 
 export class ValidationError extends RequestError {
   constructor(fieldErrors: Record<string, string[]>) {
+    console.log("Field Errors:", fieldErrors);
     const message = ValidationError.formatFieldErrors(fieldErrors);
     super(400, message, fieldErrors);
     this.name = "ValidationError";

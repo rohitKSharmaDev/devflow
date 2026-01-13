@@ -6,7 +6,7 @@ import dynamic from "next/dynamic";
 import React, { useRef } from "react";
 import { useForm } from "react-hook-form";
 
-import { AskQuestionSchema } from "../../lib/validation";
+import { AskQuestionSchema } from "../../lib/validations";
 
 import { Button } from "../ui/button";
 import {
