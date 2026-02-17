@@ -1,8 +1,8 @@
 'use server';
 
 import { SignInSchema, SignUpSchema } from "@/lib/validations";
-import action from "../action";
-import handleError from "../error";
+import action from "../handlers/action";
+import handleError from "../handlers/error";
 import mongoose from "mongoose";
 import User from "@/database/user.model";
 import bcrypt from "bcryptjs";

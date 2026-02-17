@@ -3,10 +3,10 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { MDXEditorMethods } from "@mdxeditor/editor";
 import dynamic from "next/dynamic";
-import React, { useRef } from "react";
+import React, { useRef, useTransition } from "react";
 import { useForm } from "react-hook-form";
-
 import { AskQuestionSchema } from "../../lib/validations";
+import { toast } from "sonner";
 
 import { Button } from "../ui/button";
 import {
@@ -21,13 +21,19 @@ import {
 import { Input } from "../ui/input";
 import { z } from "zod";
 import TagCard from "../cards/TagCard";
+import { createQuestion } from "@/lib/actions/question.action";
+import { useRouter } from "next/navigation";
+import ROUTES from "@/constants/routes";
+import { ReloadIcon } from "@radix-ui/react-icons";
 
 const Editor = dynamic(() => import("@/components/editor"), {
   ssr: false,
 });
 
 const QuestionForm = () => {
+  const router = useRouter();
   const editorRef = useRef<MDXEditorMethods>(null);
+  const [isPending, startTransition] = useTransition();
 
   const form = useForm<z.infer<typeof AskQuestionSchema>>({
     resolver: zodResolver(AskQuestionSchema),
@@ -71,8 +77,26 @@ const QuestionForm = () => {
     }
   };
 
-  const handleCreateQuestion = (data: z.infer<typeof AskQuestionSchema>) => {
-    console.log("Question Data:", data);
+  const handleCreateQuestion = async (data: z.infer<typeof AskQuestionSchema>) => {
+    startTransition(async () => {
+      const result = await createQuestion(data);
+
+      if(result) {
+        toast.success(`Question created successfully`, {
+          description: "An error occured during sign-in.",
+        });
+
+        if(result.data) {
+          router.push(ROUTES.QUESTION(result.data._id));
+        
+        } else {
+          toast.error(`Error ${result?.status}`, {
+            description: result?.error?.message,
+          });
+        }
+      }
+    });
+
   };
 
   return (
@@ -144,7 +168,17 @@ const QuestionForm = () => {
                   />
                   {field.value.length > 0 && (
                     <div className="flex-start mt-2.5 flex-wrap gap-2.5 ">
-                      {field?.value?.map((tag: string) => <TagCard key={tag} name={tag} _id={tag} compact remove isButton handleRemove={() => handleTagRemove(tag, field)} /> )}
+                      {field?.value?.map((tag: string) => (
+                        <TagCard
+                          key={tag}
+                          name={tag}
+                          _id={tag}
+                          compact
+                          remove
+                          isButton
+                          handleRemove={() => handleTagRemove(tag, field)}
+                        />
+                      ))}
                     </div>
                   )}
                 </div>
@@ -161,9 +195,17 @@ const QuestionForm = () => {
         <div className="mt-16 flex justify-end">
           <Button
             type="submit"
+            disabled={isPending}
             className="primary-gradient w-fit text-light-900! cursor-pointer"
           >
-            Ask A Question
+            {isPending ? (
+              <>
+                <ReloadIcon className="mr-2 size-4 animate-spin" />
+                <span>Submitting</span>
+              </>
+            ) : (
+              <>Ask A Question</>
+            )}
           </Button>
         </div>
       </form>
