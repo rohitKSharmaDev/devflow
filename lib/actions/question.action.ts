@@ -206,7 +206,7 @@ export async function getQuestion(params: GetQuestionParams) :  Promise<ActionRe
   const {questionId } = validatationResult.params!;
 
   try {
-    const question = await Question.findById(questionId).populate('tags');
+    const question = await Question.findById(questionId).populate('tags').populate('author', '_id name image');
 
     if(!question) {
       throw new Error('Question not found');
