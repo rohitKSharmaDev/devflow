@@ -25,9 +25,11 @@ const LocalSearch = ({ route, imgSrc, placeholder, otherClasses }: Props) => {
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
+      const params = searchParams.toString(); // Read it once at the start
+
       if (searchQuery) {
         const newUrl = formUrlQuery({
-          params: searchParams.toString(),
+          params,
           key: "query",
           value: searchQuery,
         });
@@ -36,7 +38,7 @@ const LocalSearch = ({ route, imgSrc, placeholder, otherClasses }: Props) => {
       } else {
         if (pathname === route) {
           const newUrl = removeKeysFromUrlQuery({
-            params: searchParams.toString(),
+            params,
             keysToRemove: ["query"],
           });
 
@@ -46,7 +48,8 @@ const LocalSearch = ({ route, imgSrc, placeholder, otherClasses }: Props) => {
     }, 300);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [searchQuery, router, route, searchParams, pathname]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery, router, route, pathname]);
 
   return (
     <div
