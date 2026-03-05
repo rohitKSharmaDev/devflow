@@ -1,3 +1,4 @@
+import { GetTagQuestionParams } from "@/types/action";
 import action from "../handlers/action";
 import handleError from "../handlers/error";
 import { GetTagQuestionsSchema, PaginatedSearchParamsSchema } from "../validations";

@@ -16,18 +16,21 @@ import {
 } from "@/components/ui/form";
 
 import { AnswerSchema } from "@/lib/validations";
-import { useRef, useState } from "react";
+import { useRef, useState, useTransition } from "react";
 import dynamic from "next/dynamic";
 import { MDXEditorMethods } from "@mdxeditor/editor";
 import { ReloadIcon } from "@radix-ui/react-icons";
 import Image from "next/image";
+import { createAnswer } from "@/lib/actions/answer.action";
+import { toast } from "sonner";
 
 const Editor = dynamic(() => import("@/components/editor"), {
   ssr: false,
 });
 
-const AnswerForm = () => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+const AnswerForm = ({ questionId } : { questionId: string}) => {
+  const [isAnswering, starAnsweringTransition] = useTransition();
+
   const [isAISubmitting, setIsAISubmitting] = useState(false);
 
   const editorRef = useRef<MDXEditorMethods>(null);
@@ -36,19 +39,42 @@ const AnswerForm = () => {
     resolver: standardSchemaResolver(AnswerSchema),
     defaultValues: {
       content: "",
-    }
+    },
   });
 
   const handleSubmit = async (values: z.infer<typeof AnswerSchema>) => {
-    console.log({ values })
+    starAnsweringTransition(async () => {
+      const result = await createAnswer({
+        questionId,
+        content: values.content,
+      });
+  
+      if(result.success) {
+        form.reset();
+  
+        toast.success(`Answer posted successfully`, {
+          description: `Question updated successfully`,
+        });
+      
+      } else {
+        toast.error(`Error ${result?.status}`, {
+          description: result?.error?.message,
+        });
+      }
+    });
   };
 
   return (
     <div>
-      <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-center sm:gap-2"> 
-        <h4 className="paragraph-semibold text-dark400_light800">Write your answer here</h4>
+      <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-center sm:gap-2">
+        <h4 className="paragraph-semibold text-dark400_light800">
+          Write your answer here
+        </h4>
 
-        <Button className="btn light-border-2 gap-1.5 rounded-md border px-4 py-2.5 text-primary-500 shadow-none dark:text-primary" disabled={isAISubmitting}>
+        <Button
+          className="btn light-border-2 gap-1.5 rounded-md border px-4 py-2.5 text-primary-500 shadow-none dark:text-primary"
+          disabled={isAISubmitting}
+        >
           {isAISubmitting ? (
             <>
               <ReloadIcon className="mr-2 size-4 animate-spin" />
@@ -56,7 +82,7 @@ const AnswerForm = () => {
             </>
           ) : (
             <>
-              <Image 
+              <Image
                 src="/icons/stars.svg"
                 alt="Generate AI Answer"
                 width={12}
@@ -92,7 +118,7 @@ const AnswerForm = () => {
 
           <div className="flex justify-end">
             <Button type="submit" className="primary-gradient w-fit">
-              {isSubmitting ? (
+              {isAnswering ? (
                 <>
                   <ReloadIcon className="mr-2 size-4 animate-spin" />
                   Posting...
@@ -106,6 +132,6 @@ const AnswerForm = () => {
       </Form>
     </div>
   );
-}
+};
 
 export default AnswerForm
