@@ -1,3 +1,5 @@
+import { string } from "zod";
+
 interface SignInWithOAuthParams {
   provider: 'github' | 'google',
   providerAccountId: string,
@@ -32,4 +34,8 @@ interface GetQuestionParams {
 
 interface GetTagQuestionParams extends Omit<PaginatedSearchParams, "filter"> {
   tagId: string;
+}
+
+interface IncrementViewsParams {
+  questionId: string;
 }
