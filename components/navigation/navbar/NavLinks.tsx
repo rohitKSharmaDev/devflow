@@ -20,27 +20,28 @@ const NavLinks = ({
   return (
     <>
       {sidebarLinks.map((item) => {
-        const isActive =
-          (pathname.includes(item.route) && item.route.length > 1) ||
-          pathname === item.route;
+        const linkRoute =
+          item.route === "/profile" && userId
+            ? `/profile/${userId}`
+            : item.route;
 
-        if (item.route === "/profile") {
-          if (userId) {
-            item.route = `${item.route}/${userId}`;
-          } else {
-            return null;
-          }
+        if (item.route === "/profile" && !userId) {
+          return null;
         }
+
+        const isActive =
+          (pathname.includes(linkRoute) && linkRoute.length > 1) ||
+          pathname === linkRoute;
 
         const LinkComponent = (
           <Link
-            href={item.route}
+            href={linkRoute}
             key={item.label}
             className={cn(
               isActive
                 ? "primary-gradient rounded-lg text-light-900"
                 : "text-dark300_light900",
-              "flex items-center justify-start p-4"
+              "flex items-center justify-start gap-4 bg-transparent p-4"
             )}
           >
             <Image
@@ -48,9 +49,8 @@ const NavLinks = ({
               alt={item.label}
               width={20}
               height={20}
-              className={cn({ "invert-colors": !isActive }, "mr-2")}
+              className={cn({ "invert-colors": !isActive })}
             />
-
             <p
               className={cn(
                 isActive ? "base-bold" : "base-medium",

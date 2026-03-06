@@ -1,5 +1,3 @@
-import { string } from "zod";
-
 interface SignInWithOAuthParams {
   provider: 'github' | 'google',
   providerAccountId: string,

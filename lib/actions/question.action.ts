@@ -7,7 +7,6 @@ import { AskQuestionSchema, EditQuestionSchema, GetQuestionSchema, PaginatedSear
 import Question, { IQuestionDoc } from "@/database/question.model";
 import Tag, { ITagDoc } from "@/database/tag.model";
 import TagQuestion from "@/database/tag-question.model";
-import { CreateQuestionParams, EditQuestionParams, GetQuestionParams, IncrementViewsParams } from "@/types/action";
 import { revalidatePath } from "next/cache";
 import ROUTES from "@/constants/routes";
 
