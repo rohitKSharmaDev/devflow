@@ -1,6 +1,5 @@
 "use client";
 
-import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import Link from "next/link";
 import {
   DefaultValues,
@@ -9,7 +8,7 @@ import {
   SubmitHandler,
   useForm,
 } from "react-hook-form";
-import { z, ZodType } from "zod";
+import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -24,9 +23,10 @@ import { Input } from "@/components/ui/input";
 import ROUTES from "@/constants/routes";
 import { toast } from 'sonner';
 import { useRouter } from "next/navigation";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 interface AuthFormProps<T extends FieldValues> {
-  schema: ZodType<T>;
+  schema: z.ZodType<T, T>;
   defaultValues: T;
   onSubmit: (data: T) => Promise<ActionResponse>;
   formType: "SIGN_IN" | "SIGN_UP";
@@ -41,7 +41,7 @@ const AuthForm = <T extends FieldValues>({
   const router = useRouter();
 
   const form = useForm<z.infer<typeof schema>>({
-    resolver: standardSchemaResolver(schema),
+    resolver: zodResolver(schema),
     defaultValues: defaultValues as DefaultValues<T>,
   });
 

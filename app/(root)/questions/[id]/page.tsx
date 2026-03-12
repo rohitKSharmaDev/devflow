@@ -38,7 +38,7 @@ const QuestionDetails = async ({ params} : RouteParams) => {
   const { author, createdAt, answers, views, tags, content, title } = question;
   
   return (
-    <>      
+    <>
       <div className="flex-start w-full flex-col">
         <div className="flex w-full flex-col-reverse justify-between">
           <div className="flex items-center justify-start gap-1">
@@ -93,19 +93,14 @@ const QuestionDetails = async ({ params} : RouteParams) => {
 
       <Preview content={content} />
 
-      <div className='mt-8 flex flex-wrap gap-2'>
+      <div className="mt-8 flex flex-wrap gap-2">
         {tags.map((tag) => (
-          <TagCard 
-            key={tag._id}
-            _id={tag._id}
-            name={tag.name}
-            compact
-          />
+          <TagCard key={tag._id} _id={tag._id} name={tag.name} compact />
         ))}
       </div>
 
-      <section className='my-5'>
-        <AllAnswers 
+      <section className="my-5">
+        <AllAnswers
           data={answersResult?.answers}
           success={areAnswersLoaded}
           error={answersError}
@@ -113,8 +108,12 @@ const QuestionDetails = async ({ params} : RouteParams) => {
         />
       </section>
 
-      <section className='my-5'>
-        <AnswerForm questionId={question._id} /> 
+      <section className="my-5">
+        <AnswerForm
+          questionId={question._id}
+          questionTitle={question.title}
+          questionContent={question.content}
+        />
       </section>
     </>
   );
