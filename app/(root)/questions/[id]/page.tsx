@@ -1,43 +1,49 @@
-import AllAnswers from '@/components/answers/AllAnswers';
-import TagCard from '@/components/cards/TagCard';
-import Preview from '@/components/editor/preview';
-import AnswerForm from '@/components/forms/AnswerForm';
-import Metric from '@/components/Metric';
-import UserAvatar from '@/components/UserAvatar';
-import Votes from '@/components/votes/Votes';
-import ROUTES from '@/constants/routes';
-import { getAnswers } from '@/lib/actions/answer.action';
-import { getQuestion, incrementViews } from '@/lib/actions/question.action';
-import { formatNumber, getTimeStamp } from '@/lib/utils';
-import Link from 'next/link';
-import { redirect } from 'next/navigation';
-import { after } from 'next/server';
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { after } from "next/server";
+import React, { Suspense } from "react";
 
-const QuestionDetails = async ({ params} : RouteParams) => {
+import AllAnswers from "@/components/answers/AllAnswers";
+import TagCard from "@/components/cards/TagCard";
+import Preview from "@/components/editor/preview";
+import AnswerForm from "@/components/forms/AnswerForm";
+import Metric from "@/components/Metric";
+import UserAvatar from "@/components/UserAvatar";
+import Votes from "@/components/votes/Votes";
+import ROUTES from "@/constants/routes";
+import { getAnswers } from "@/lib/actions/answer.action";
+import { getQuestion, incrementViews } from "@/lib/actions/question.action";
+import { hasVoted } from "@/lib/actions/vote.action";
+import { formatNumber, getTimeStamp } from "@/lib/utils";
+
+const QuestionDetails = async ({ params }: RouteParams) => {
   const { id } = await params;
-  const { success, data: question } = await getQuestion({
-    questionId: id,
-  });
+  const { success, data: question } = await getQuestion({ questionId: id });
 
   after(async () => {
     await incrementViews({ questionId: id });
   });
 
-  if (!success || !question) {
-    return redirect("/404");
-  }
+  if (!success || !question) return redirect("/404");
 
-  const { success: areAnswersLoaded, data: answersResult, error: answersError} = await getAnswers({
+  const {
+    success: areAnswersLoaded,
+    data: answersResult,
+    error: answersError,
+  } = await getAnswers({
     questionId: id,
     page: 1,
     pageSize: 10,
-    filter: 'latest'
+    filter: "latest",
   });
 
-  console.log({ answersResult  });
+  const hasVotedPromise = hasVoted({
+    targetId: question._id,
+    targetType: "question",
+  });
 
   const { author, createdAt, answers, views, tags, content, title } = question;
-  
+
   return (
     <>
       <div className="flex-start w-full flex-col">
@@ -46,7 +52,7 @@ const QuestionDetails = async ({ params} : RouteParams) => {
             <UserAvatar
               id={author._id}
               name={author.name}
-              className="size-5.5"
+              className="size-[22px]"
               fallbackClassName="text-[10px]"
             />
             <Link href={ROUTES.PROFILE(author._id)}>
@@ -57,16 +63,19 @@ const QuestionDetails = async ({ params} : RouteParams) => {
           </div>
 
           <div className="flex justify-end">
-            <Votes 
-              upvotes={question.upvotes} 
-              hasUpvoted={true} 
-              downvotes={question.downvotes} 
-              hasDownvVoted={false}
-            />
+            <Suspense fallback={<div>Loading...</div>}>
+              <Votes
+                targetType="question"
+                upvotes={question.upvotes}
+                downvotes={question.downvotes}
+                targetId={question._id}
+                hasVotedPromise={hasVotedPromise}
+              />
+            </Suspense>
           </div>
         </div>
 
-        <h2 className="h2-semibold text-dark200_light900 mt-3 w-full">
+        <h2 className="h2-semibold text-dark200_light900 mt-3.5 w-full">
           {title}
         </h2>
       </div>
@@ -75,11 +84,10 @@ const QuestionDetails = async ({ params} : RouteParams) => {
         <Metric
           imgUrl="/icons/clock.svg"
           alt="clock icon"
-          value={` asked ${getTimeStamp(new Date(createdAt))} ago`}
+          value={` asked ${getTimeStamp(new Date(createdAt))}`}
           title=""
           textStyles="small-regular text-dark400_light700"
         />
-
         <Metric
           imgUrl="/icons/message.svg"
           alt="message icon"
@@ -87,7 +95,6 @@ const QuestionDetails = async ({ params} : RouteParams) => {
           title=""
           textStyles="small-regular text-dark400_light700"
         />
-
         <Metric
           imgUrl="/icons/eye.svg"
           alt="eye icon"
@@ -100,8 +107,13 @@ const QuestionDetails = async ({ params} : RouteParams) => {
       <Preview content={content} />
 
       <div className="mt-8 flex flex-wrap gap-2">
-        {tags.map((tag) => (
-          <TagCard key={tag._id} _id={tag._id} name={tag.name} compact />
+        {tags.map((tag: Tag) => (
+          <TagCard
+            key={tag._id}
+            _id={tag._id as string}
+            name={tag.name}
+            compact
+          />
         ))}
       </div>
 
@@ -123,6 +135,6 @@ const QuestionDetails = async ({ params} : RouteParams) => {
       </section>
     </>
   );
-}
+};
 
 export default QuestionDetails;

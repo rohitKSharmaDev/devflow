@@ -1,43 +1,71 @@
 'use client';
 
+import { createVote } from '@/lib/actions/vote.action';
 import { formatNumber } from '@/lib/utils';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
-import { useState } from 'react'
+import { use, useState } from 'react'
 import { toast } from 'sonner';
 
 interface Props {
   upvotes: number;
-  hasUpvoted: boolean;
   downvotes: number;
-  hasDownvVoted: boolean;
+  hasVotedPromise: Promise<ActionResponse<HasVotedResponse>>;
+  targetType: "question" | "answer";
+  targetId: string;
 }
 
-const Votes = ({ upvotes, hasUpvoted, downvotes, hasDownvVoted}: Props) => {
+const Votes = ({
+  upvotes,
+  downvotes,
+  hasVotedPromise,
+  targetType,
+  targetId
+}: Props) => {
   const session = useSession();
   const userId = session.data?.user?.id;
 
+  const { success, data } = use(hasVotedPromise);
+
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleVote = async(voteType: 'upvote' | 'downvote') => {
-    if(!userId) {
+  const { hasUpvoted, hasDownvoted } = data || {};
+
+  const handleVote = async (voteType: "upvote" | "downvote") => {
+    if (!userId) {
       return toast.error("Please login to vote", {
-        description: "You need to be logged in to upvote or downvote a question."
+        description:
+          "You need to be logged in to upvote or downvote a question.",
       });
     }
 
+    setIsLoading(true);
+
     try {
-      const successMessage = voteType === 'upvote' ? `Upvote ${!hasUpvoted ? "added": "removed"} successfully` : `Downvote ${!hasDownvVoted ? "added": "removed"} successfully`;
+      const result = await createVote({
+        targetId,
+        targetType,
+        voteType,
+      });
+
+      if(!result.success) {
+        return toast.error("Failed to vote", {
+          description: result?.error?.message,
+        });
+      }
+
+      const successMessage =
+        voteType === "upvote"
+          ? `Upvote ${!hasUpvoted ? "added" : "removed"} successfully`
+          : `Downvote ${!hasDownvoted ? "added" : "removed"} successfully`;
 
       toast.success(successMessage, {
-        description: "Your vote has been recorded"
+        description: "Your vote has been recorded",
       });
-      
     } catch {
       toast.error("Failed to vote", {
-        description: "An error occurred while voting"
+        description: "An error occurred while voting",
       });
-    
     } finally {
       setIsLoading(false);
     }
@@ -47,7 +75,7 @@ const Votes = ({ upvotes, hasUpvoted, downvotes, hasDownvVoted}: Props) => {
     <div className="flex-center gap-2.5">
       <div className="flex-center gap-1.5">
         <Image
-          src={hasUpvoted ? "/icons/upvoted.svg" : "/icons/upvote.svg"}
+          src={success && hasUpvoted ? "/icons/upvoted.svg" : "/icons/upvote.svg"}
           alt="Upvote icon"
           width={18}
           height={18}
@@ -65,7 +93,7 @@ const Votes = ({ upvotes, hasUpvoted, downvotes, hasDownvVoted}: Props) => {
 
       <div className="flex-center gap-1.5">
         <Image
-          src={hasDownvVoted ? "/icons/downvoted.svg" : "/icons/downvote.svg"}
+          src={success && hasDownvoted ? "/icons/downvoted.svg" : "/icons/downvote.svg"}
           alt="Downvote icon"
           width={18}
           height={18}
@@ -82,6 +110,6 @@ const Votes = ({ upvotes, hasUpvoted, downvotes, hasDownvVoted}: Props) => {
       </div>
     </div>
   );
-}
+};
 
 export default Votes
