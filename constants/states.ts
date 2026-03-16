@@ -51,3 +51,8 @@ export const EMPTY_COLLECTIONS = {
     href: ROUTES.COLLECTION,
   },
 };
+
+export const EMPTY_USERS = {
+  title: "No Users Found",
+  message: "The user directory is empty. Maybe it's waiting for you to join the community? Don't be shy, give it a try!",
+};

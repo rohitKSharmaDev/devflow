@@ -17,7 +17,7 @@ export async function getUsers(params: PaginatedSearchParams): Promise<ActionRes
 
   const { page = 1, pageSize = 10, query, filter } = params;
 
-  const skip = Number(page) - 1 * pageSize;
+  const skip = (Number(page) - 1) * pageSize;
   const limit = pageSize;
 
   const filterQuery: Record<string, unknown> = {};
@@ -42,6 +42,7 @@ export async function getUsers(params: PaginatedSearchParams): Promise<ActionRes
       sortCriteria = { reputation: -1 };
       break;
     default:
+      sortCriteria = { createdAt: -1 };
       break;
   }
 
