@@ -7,7 +7,7 @@ import dayjs from "dayjs";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import Stats from "@/components/user/Stats";
-
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Profile = async ({ params}: RouteParams) => {
   const { id } = await params;
@@ -47,7 +47,9 @@ const Profile = async ({ params}: RouteParams) => {
 
           <div className="mt-3">
             <h2 className="h2-bold text-dark100_light900">{name}</h2>
-            <p className="patagraph-regular text-dark200_light800">@{username}</p>
+            <p className="patagraph-regular text-dark200_light800">
+              @{username}
+            </p>
 
             <div className="mt-5 flex flex-wrap items-center justify-start gap-5">
               {portfolio && (
@@ -59,16 +61,13 @@ const Profile = async ({ params}: RouteParams) => {
               )}
 
               {location && (
-                <ProfileLink
-                  imgUrl="/icons/location.svg"
-                  title="Portfolio"
-                />
+                <ProfileLink imgUrl="/icons/location.svg" title="Portfolio" />
               )}
 
-            <ProfileLink
-              imgUrl="/icons/calendar.svg"
-              title={dayjs(createdAt).format('MMMM YYYY')}
-            />
+              <ProfileLink
+                imgUrl="/icons/calendar.svg"
+                title={dayjs(createdAt).format("MMMM YYYY")}
+              />
             </div>
 
             {bio && (
@@ -96,9 +95,41 @@ const Profile = async ({ params}: RouteParams) => {
         badges={{
           GOLD: 0,
           SILVER: 0,
-          BRONZE: 0
+          BRONZE: 0,
         }}
       />
+
+      <section className="mt-10 flex gap-10">
+        <Tabs defaultValue="top-posts" className="flex-2">
+          <TabsList className="background-light800_dark400 min-h-10.5 p-1">
+            <TabsTrigger className="tab" value="top-posts">
+              Top Posts
+            </TabsTrigger>
+            <TabsTrigger className="tab" value="answers">
+              Answers
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent
+            value="top-posts"
+            className="mt-5 flex w-full flex-col gap-6"
+          >
+            List of questions
+          </TabsContent>
+          <TabsContent
+            value="answers"
+            className="flex w-full flex-col gap-6"
+          >
+           List of answers
+          </TabsContent>
+        </Tabs>
+
+        <div className="flex w-full min-w-50 flex-1 flex-col max-lg:hidden">
+          <h3 className="h3-bold text-dark200_light900">Top Tech</h3>
+          <div className="mt-7 flex flex-col gap-4">
+            <p>List of tags</p>
+          </div>
+        </div>
+      </section>
     </>
   );
 }
