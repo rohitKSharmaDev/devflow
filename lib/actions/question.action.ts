@@ -11,6 +11,8 @@ import { revalidatePath } from "next/cache";
 import ROUTES from "@/constants/routes";
 import dbConnect from "../mongoose";
 import { Answer, Collection, Vote } from "@/database";
+import { after } from "next/server";
+import { createInteraction } from "./interaction.action";
 
 export async function createQuestion(params: CreateQuestionParams) :  Promise<ActionResponse<Question>> {
   const validatationResult = await action({
@@ -30,48 +32,57 @@ export async function createQuestion(params: CreateQuestionParams) :  Promise<Ac
   session.startTransaction();
 
   try {
-  const [question] = await Question.create([
-    { title, content, author: userId }], 
-    { session}
-  );
-
-  if(!question) {
-    throw new Error('Failed to create question');
-  }
-
-  const tagIds: mongoose.Types.ObjectId[] = [];
-  const tagQuestionDocuments = [];
-
-  for(const tag of tags) {
-    const existingTag = await Tag.findOneAndUpdate(
-      { 
-        name: { $regex: new RegExp(`^${tag}$`, 'i')}
-      },
-      { 
-        $setOnInsert: { name: tag }, $inc: { questions: 1 }
-      },
-      {
-        upsert: true, new: true, session
-      }
+    const [question] = await Question.create([
+      { title, content, author: userId }], 
+      { session}
     );
 
-    tagIds.push(existingTag._id);
-    tagQuestionDocuments.push({
-      tag: existingTag._id,
-      question: question._id
-    }); 
-  }
-  
-  await TagQuestion.insertMany(tagQuestionDocuments, { session });
+    if(!question) {
+      throw new Error('Failed to create question');
+    }
 
-  await Question.findByIdAndUpdate(
-    question._id,
-    { $push: { tags: { $each: tagIds }}},
-    { session }
-  );
+    const tagIds: mongoose.Types.ObjectId[] = [];
+    const tagQuestionDocuments = [];
 
-  await session.commitTransaction();
-  return { success: true, data: JSON.parse(JSON.stringify(question)) };
+    for(const tag of tags) {
+      const existingTag = await Tag.findOneAndUpdate(
+        { 
+          name: { $regex: new RegExp(`^${tag}$`, 'i')}
+        },
+        { 
+          $setOnInsert: { name: tag }, $inc: { questions: 1 }
+        },
+        {
+          upsert: true, new: true, session
+        }
+      );
+
+      tagIds.push(existingTag._id);
+      tagQuestionDocuments.push({
+        tag: existingTag._id,
+        question: question._id
+      }); 
+    }
+    
+    await TagQuestion.insertMany(tagQuestionDocuments, { session });
+
+    await Question.findByIdAndUpdate(
+      question._id,
+      { $push: { tags: { $each: tagIds }}},
+      { session }
+    );
+
+    after(async () => {
+      await createInteraction({
+        action: "post",
+        actionId: question._id.toString(),
+        actionTarget: "question",
+        authorId: userId as string,
+      });
+    });
+
+    await session.commitTransaction();
+    return { success: true, data: JSON.parse(JSON.stringify(question)) };
 
   } catch (error) {
     await session.abortTransaction();
