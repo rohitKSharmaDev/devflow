@@ -14,6 +14,7 @@ import { Answer, Collection, Interaction, Vote } from "@/database";
 import { after } from "next/server";
 import { createInteraction } from "./interaction.action";
 import { auth } from "@/auth";
+import { cache } from "react";
 
 export async function createQuestion(params: CreateQuestionParams) :  Promise<ActionResponse<Question>> {
   const validatationResult = await action({
@@ -208,34 +209,35 @@ export async function editQuestion(params: EditQuestionParams) :  Promise<Action
   } 
 }
 
-export async function getQuestion(params: GetQuestionParams) :  Promise<ActionResponse<Question>> {
+export const getQuestion = cache(async function getQuestion(
+  params: GetQuestionParams
+): Promise<ActionResponse<Question>> {
   const validatationResult = await action({
     params,
     schema: GetQuestionSchema,
-    authorize: true
+    authorize: true,
   });
 
-  if(validatationResult instanceof Error) {
+  if (validatationResult instanceof Error) {
     return handleError(validatationResult) as ErrorResponse;
   }
 
-  const {questionId } = validatationResult.params!;
+  const { questionId } = validatationResult.params!;
 
   try {
-    const question = await Question.findById(questionId).populate('tags').populate('author', '_id name image');
+    const question = await Question.findById(questionId)
+      .populate("tags")
+      .populate("author", "_id name image");
 
-    if(!question) {
-      throw new Error('Question not found');
+    if (!question) {
+      throw new Error("Question not found");
     }
 
     return { success: true, data: JSON.parse(JSON.stringify(question)) };
-
   } catch (error) {
     return handleError(error as Error) as ErrorResponse;
-    
   }
-
-}
+});
 
 export async function getRecommendedQuestions({ userId, query, skip, limit}: RecommendationParams) {
   const interactions = await Interaction.find({
