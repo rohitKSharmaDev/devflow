@@ -1,8 +1,10 @@
 import "@testing-library/jest-dom";
+import { mockUseRouter } from "./tests/mocks";
 
-jest.mock("next/navigation", () => ({
-  useRouter: jest.fn(() => ({ 
-    replace: jest.fn(),
-    push: jest.fn(),
-  })),
+jest.mock("next/navigation", () => ({ useRouter: mockUseRouter }));
+jest.mock("sonner", () => ({
+  toast: {
+    success: jest.fn(),
+    error: jest.fn(),
+  },
 }));

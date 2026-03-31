@@ -9,7 +9,7 @@ export const SignInSchema = z.object({
 
   password: z
     .string()
-    .min(6, { message: "Password must be at least 6 characters long. " })
+    .min(6, { message: "Password must be at least 6 characters long." })
     .max(100, { message: "Password cannot exceed 100 characters." }),
 });
 
